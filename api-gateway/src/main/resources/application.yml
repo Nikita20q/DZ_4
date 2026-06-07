@@ -1,0 +1,58 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: file-storing-service-docs
+          uri: http://file-storing-service:8081
+          predicates:
+            - Path=/api/storing/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
+        
+        - id: file-analysis-service-docs
+          uri: http://file-analysis-service:8082
+          predicates:
+            - Path=/api/analysis/v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
+        
+        - id: file-storing-service
+          uri: http://file-storing-service:8081
+          predicates:
+            - Path=/api/storing/**
+          filters:
+            - RewritePath=/api/storing/(?<remaining>.*), /api/${remaining}
+        
+        - id: file-storing-service-direct
+          uri: http://file-storing-service:8081
+          predicates:
+            - Path=/api/submissions/**
+        
+        - id: file-analysis-service
+          uri: http://file-analysis-service:8082
+          predicates:
+            - Path=/api/analysis/**
+
+        - id: wordcloud-service
+          uri: http://file-analysis-service:8082
+          predicates:
+            - Path=/api/wordcloud/**
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    urls:
+      - name: File Storing Service
+        url: /api/storing/v3/api-docs
+      - name: File Analysis Service
+        url: /api/analysis/v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      enabled: true

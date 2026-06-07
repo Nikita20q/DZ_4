@@ -1,0 +1,30 @@
+server:
+  port: 8082
+  forward-headers-strategy: framework
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/kosmoscan
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+wordcloud:
+  storage:
+    location: ${WORDCLOUD_STORAGE_LOCATION:./wordclouds}
+
+file-storing-service:
+  url: ${FILE_STORING_SERVICE_URL:http://file-storing-service:8081}

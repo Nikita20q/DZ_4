@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: kosmoscan-db
+    environment:
+      POSTGRES_DB: kosmoscan
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - kosmoscan-network
+
+  file-storing-service:
+    build:
+      context: ./KosmoSkan
+      dockerfile: Dockerfile
+    container_name: kosmoscan-storing
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kosmoscan
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      FILE_STORAGE_LOCATION: /app/uploads
+      ANALYSIS_SERVICE_URL: http://api-gateway:8080/api/analysis
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kosmoscan-network
+
+  file-analysis-service:
+    build:
+      context: ./file-analysis-service
+      dockerfile: Dockerfile
+    container_name: kosmoscan-analysis
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/kosmoscan
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      FILE_STORING_SERVICE_URL: http://file-storing-service:8081
+      WORDCLOUD_STORAGE_LOCATION: /app/wordclouds
+    volumes:
+      - ./wordclouds:/app/wordclouds
+      - ./uploads:/app/uploads:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - kosmoscan-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: kosmoscan-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - file-storing-service
+      - file-analysis-service
+    networks:
+      - kosmoscan-network
+
+volumes:
+  postgres-data:
+
+networks:
+  kosmoscan-network:
+    driver: bridge
