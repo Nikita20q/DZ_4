@@ -69,6 +69,12 @@ KosmoSkan - это распределённая система для загру
 
 При возникновении ошибок извлечения текста или генерации облака слов анализ не прерывается - отчёт сохраняется со статусом COMPLETED, но поле wordCloudPath остаётся пустым.
 
+### Покрытие тестами
+
+![Storing Service](docs/2.png)
+![Analysis Service](docs/3.png)
+
+
 ## API Endpoints
 
 ### File Storing Service

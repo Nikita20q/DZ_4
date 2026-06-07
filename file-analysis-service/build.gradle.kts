@@ -40,7 +40,6 @@ dependencies {
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
 
-    // Исключаем DTO из покрытия
     classDirectories.setFrom(
         files(
             classDirectories.files.map {
